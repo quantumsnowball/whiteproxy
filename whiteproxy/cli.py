@@ -5,8 +5,8 @@ from whiteproxy.utils.console import print_warning
 
 
 @click.command()
-@click.option('-s', '--src', required=True, help='proxy source socket')
-@click.option('-d', '--dest', required=True, help='proxy destination socket')
+@click.option('-s', '--src', metavar='IP:PORT', required=True, help='proxy source socket')
+@click.option('-d', '--dest', metavar='IP:PORT', required=True, help='proxy destination socket')
 @click.option('-a', '--allow', required=True, multiple=True, help='whitelist ip addresses')
 @click.argument('command', nargs=-1, type=str)
 def whiteproxy(src: str,
