@@ -1,4 +1,5 @@
 import click
+from subprocess import Popen
 
 
 @click.command()
@@ -14,8 +15,10 @@ def whiteproxy(src: str,
     Run COMMAND and proxy serve the service
     (use `--` as prefix if COMMAND uses its own options)
     '''
-    # src_addr, src_port = src.split(':')
     print(src)
     print(dest)
     print(allow)
+
     print(command)
+    process = Popen(command)
+    process.wait()
