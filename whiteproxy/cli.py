@@ -1,6 +1,8 @@
 import click
 from subprocess import Popen
 
+from whiteproxy.utils.console import print_warning
+
 
 @click.command()
 @click.option('-s', '--src', required=True, help='proxy source socket')
@@ -15,10 +17,10 @@ def whiteproxy(src: str,
     Run COMMAND and proxy serve the service
     (use `--` as prefix if COMMAND uses its own options)
     '''
-    print(src)
-    print(dest)
-    print(allow)
+    print_warning(src)
+    print_warning(dest)
+    print_warning(', '.join(allow))
 
-    print(command)
+    print_warning(' '.join(command))
     process = Popen(command)
     process.wait()
