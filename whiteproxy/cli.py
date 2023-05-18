@@ -2,7 +2,7 @@ import click
 
 import asyncio
 from asyncio import StreamReader, StreamWriter
-from whiteproxy.utils.console import print_success, print_warning
+from whiteproxy.utils.console import print_error, print_success, print_warning
 
 
 async def start_target(command: str,
@@ -14,7 +14,9 @@ async def start_target(command: str,
 
 
 async def start_proxy(host: str,
-                      target: str) -> None:
+                      target: str,
+                      *,
+                      allow: list[str]) -> None:
     # src and dest socket
     host_addr, host_port = host.split(':')
     target_addr, target_port = target.split(':')
@@ -23,9 +25,11 @@ async def start_proxy(host: str,
     # server
     async def serve(reader: StreamReader, writer: StreamWriter) -> None:
         # confirm ip is in whitelist
-        # TODO
         addr, port = writer.get_extra_info('peername')
         print_warning(f'Incoming: {addr}:{port}')
+        if addr not in allow:
+            print_error(f'{addr} is not allowed')
+            return
 
         # connect to target
         target_reader, target_writer = await asyncio.open_connection(target_addr, target_port)
@@ -70,6 +74,6 @@ def whiteproxy(host: str,
     async def tasks() -> None:
         await asyncio.gather(
             asyncio.create_task(start_target(command, *args)),
-            asyncio.create_task(start_proxy(host, target)),
+            asyncio.create_task(start_proxy(host, target, allow=allow)),
         )
     asyncio.run(tasks())
