@@ -2,14 +2,14 @@ import click
 
 import asyncio
 from asyncio import StreamReader, StreamWriter
-from whiteproxy.utils.console import print_warning
+from whiteproxy.utils.console import print_success, print_warning
 
 
 async def start_target(command: str,
                        *args: str) -> None:
     # start subprocess
     proc = await asyncio.create_subprocess_exec(command, *args)
-    print_warning(f'{command} {" ".join(args)}')
+    print_success(f'Exccuted: {command} {" ".join(args)}')
     await proc.wait()
 
 
@@ -25,20 +25,29 @@ async def start_proxy(host: str,
         # confirm ip is in whitelist
         # TODO
         addr, port = writer.get_extra_info('peername')
-        print(f'Incoming: {addr}:{port}')
+        print_warning(f'Incoming: {addr}:{port}')
 
+        # connect to target
+        target_reader, target_writer = await asyncio.open_connection(target_addr, target_port)
+        print_success('Connected to target')
+
+        # proxy redirection
         while True:
-            print('reading... ')
-            data = await reader.read(1024)
-            if not data:
+            # inflow
+            inflow = await reader.read(4096)
+            if not inflow:
                 break
+            target_writer.write(inflow)
+            await target_writer.drain()
 
-        print('ended.')
-        # await async_exec(command, *args)
-        # start proxy redirection
-        # TODO
+            # outflow
+            outflow = await target_reader.read(4096)
+            if not outflow:
+                break
+            writer.write(outflow)
+            await writer.drain()
 
-    server = await asyncio.start_server(serve, host_addr, host_port, limit=1)
+    server = await asyncio.start_server(serve, host_addr, host_port)
     async with server:
         await server.serve_forever()
 
